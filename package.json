@@ -1,0 +1,18 @@
+{
+  "name": "mmm-movementdetection",
+  "version": "0.1.0",
+  "description": "MagicMirror module that uses a camera feed to detect motion, dim the screen after inactivity, and persist the last movement time.",
+  "main": "MMM-MovementDetection.js",
+  "scripts": {
+    "check": "node --check MMM-MovementDetection.js && node --check node_helper.js"
+  },
+  "keywords": [
+    "magicmirror",
+    "magicmirror2",
+    "motion",
+    "camera",
+    "presence",
+    "screen-dimming"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,83 @@
+.mmm-movement-detection {
+  min-width: 260px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top left, rgba(74, 222, 128, 0.12), transparent 55%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(17, 24, 39, 0.72));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  color: #e5edf5;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.mmm-movement-detection__title {
+  margin-bottom: 10px;
+  color: #9fb3c8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mmm-movement-detection__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.mmm-movement-detection__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mmm-movement-detection__chip--ready {
+  background: rgba(45, 212, 191, 0.18);
+  color: #7dd3fc;
+}
+
+.mmm-movement-detection__chip--active {
+  background: rgba(74, 222, 128, 0.18);
+  color: #86efac;
+}
+
+.mmm-movement-detection__chip--idle {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fcd34d;
+}
+
+.mmm-movement-detection__chip--error {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+}
+
+.mmm-movement-detection__label,
+.mmm-movement-detection__meta {
+  color: #8ba1b7;
+  font-size: 13px;
+}
+
+.mmm-movement-detection__value {
+  color: #f8fafc;
+  font-size: 14px;
+  text-align: right;
+}
+
+.mmm-movement-detection__error {
+  margin-top: 10px;
+  color: #fda4af;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.mmm-movement-detection-dimmed {
+  filter: brightness(var(--mmm-movement-detection-screen-brightness, 0.2));
+  transition: filter 600ms ease;
+}
