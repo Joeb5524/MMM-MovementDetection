@@ -16,7 +16,7 @@ Clone this repository into your MagicMirror `modules` directory:
 
 ```bash
 cd ~/MagicMirror/modules
-git clone <your-repo-url> MMM-MovementDetection
+git clone github.com/joeb5524/MMM-MovementDetection
 cd MMM-MovementDetection
 npm install
 ```
