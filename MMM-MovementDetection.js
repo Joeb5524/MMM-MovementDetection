@@ -80,17 +80,19 @@ Module.register("MMM-MovementDetection", {
 
     wrapper.appendChild(header);
 
-    const headline = document.createElement("div");
-    headline.className = "mmm-movement-detection__headline";
-    headline.textContent = this.getHeadlineText();
-    wrapper.appendChild(headline);
+    if (this.config.debug) {
+      const headline = document.createElement("div");
+      headline.className = "mmm-movement-detection__headline";
+      headline.textContent = this.getHeadlineText();
+      wrapper.appendChild(headline);
 
-    const description = document.createElement("div");
-    description.className = "mmm-movement-detection__description";
-    description.textContent = this.getDescriptionText();
-    wrapper.appendChild(description);
+      const description = document.createElement("div");
+      description.className = "mmm-movement-detection__description";
+      description.textContent = this.getDescriptionText();
+      wrapper.appendChild(description);
+    }
 
-    if (this.config.showModuleStatus) {
+    if (this.config.debug && this.config.showModuleStatus) {
       const statusRow = document.createElement("div");
       statusRow.className = "mmm-movement-detection__row";
 
@@ -113,7 +115,7 @@ Module.register("MMM-MovementDetection", {
 
       const label = document.createElement("span");
       label.className = "mmm-movement-detection__label";
-      label.textContent = "Last movement";
+      label.textContent = "Last seen";
 
       const value = document.createElement("span");
       value.className = "mmm-movement-detection__value";
@@ -124,7 +126,7 @@ Module.register("MMM-MovementDetection", {
       wrapper.appendChild(movementRow);
     }
 
-    if (this.config.showIdleSummary) {
+    if (this.config.debug && this.config.showIdleSummary) {
       const idleRow = document.createElement("div");
       idleRow.className = "mmm-movement-detection__row";
 
@@ -621,9 +623,13 @@ Module.register("MMM-MovementDetection", {
       return "No movement recorded yet";
     }
 
-    const absolute = new Date(this.lastMovementAt).toLocaleString();
     const relative = this.formatDuration(Date.now() - this.lastMovementAt);
-    return `${absolute} (${relative} ago)`;
+    if (this.config.debug) {
+      const absolute = new Date(this.lastMovementAt).toLocaleString();
+      return `${absolute} (${relative} ago)`;
+    }
+
+    return `${relative} ago`;
   },
 
   formatDuration: function (durationMs) {
