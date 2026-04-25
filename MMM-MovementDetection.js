@@ -44,6 +44,7 @@ Module.register("MMM-MovementDetection", {
     this.canvasContext = null;
     this.previousFrame = null;
     this.stream = null;
+    this.lastMotionStats = null;
 
     this.sendSocketNotification("INIT", {
       identifier: this.identifier,
@@ -62,10 +63,32 @@ Module.register("MMM-MovementDetection", {
     const wrapper = document.createElement("div");
     wrapper.className = "mmm-movement-detection";
 
+    const statusLabel = this.getStatusLabel();
+
+    const header = document.createElement("div");
+    header.className = "mmm-movement-detection__header";
+
     const title = document.createElement("div");
     title.className = "mmm-movement-detection__title";
     title.textContent = "Movement monitor";
-    wrapper.appendChild(title);
+    header.appendChild(title);
+
+    const badge = document.createElement("span");
+    badge.className = `mmm-movement-detection__badge ${this.getStatusClassName()}`;
+    badge.textContent = statusLabel;
+    header.appendChild(badge);
+
+    wrapper.appendChild(header);
+
+    const headline = document.createElement("div");
+    headline.className = "mmm-movement-detection__headline";
+    headline.textContent = this.getHeadlineText();
+    wrapper.appendChild(headline);
+
+    const description = document.createElement("div");
+    description.className = "mmm-movement-detection__description";
+    description.textContent = this.getDescriptionText();
+    wrapper.appendChild(description);
 
     if (this.config.showModuleStatus) {
       const statusRow = document.createElement("div");
@@ -73,7 +96,7 @@ Module.register("MMM-MovementDetection", {
 
       const statusChip = document.createElement("span");
       statusChip.className = `mmm-movement-detection__chip ${this.getStatusClassName()}`;
-      statusChip.textContent = this.getStatusLabel();
+      statusChip.textContent = statusLabel;
 
       const cameraState = document.createElement("span");
       cameraState.className = "mmm-movement-detection__meta";
@@ -116,6 +139,48 @@ Module.register("MMM-MovementDetection", {
       idleRow.appendChild(label);
       idleRow.appendChild(value);
       wrapper.appendChild(idleRow);
+    }
+
+    if (this.config.debug) {
+      const detailsPanel = document.createElement("div");
+      detailsPanel.className = "mmm-movement-detection__details";
+
+      const detailsTitle = document.createElement("div");
+      detailsTitle.className = "mmm-movement-detection__details-title";
+      detailsTitle.textContent = "Debug details";
+      detailsPanel.appendChild(detailsTitle);
+
+      const cameraConfig = this.config.camera || {};
+      const cameraWidth = cameraConfig.width && typeof cameraConfig.width.ideal !== "undefined" ? cameraConfig.width.ideal : "?";
+      const cameraHeight = cameraConfig.height && typeof cameraConfig.height.ideal !== "undefined" ? cameraConfig.height.ideal : "?";
+      const frameRate = cameraConfig.frameRate && typeof cameraConfig.frameRate.ideal !== "undefined" ? cameraConfig.frameRate.ideal : "?";
+
+      const details = [
+        ["Motion ratio", this.lastMotionStats ? this.currentMotionRatio.toFixed(4) : "0.0000"],
+        ["Sampled / changed", this.getSampleSummary()],
+        ["Thresholds", `${this.config.changedPixelRatioThreshold} ratio, ${this.config.pixelDifferenceThreshold} luma, stride ${this.config.downSampleStride}`],
+        ["Camera", `${cameraWidth}x${cameraHeight} @ ${frameRate}fps`],
+        ["Last activity", this.formatLastActivity()]
+      ];
+
+      details.forEach(([label, value]) => {
+        const detailRow = document.createElement("div");
+        detailRow.className = "mmm-movement-detection__detail";
+
+        const detailLabel = document.createElement("span");
+        detailLabel.className = "mmm-movement-detection__detail-label";
+        detailLabel.textContent = label;
+
+        const detailValue = document.createElement("span");
+        detailValue.className = "mmm-movement-detection__detail-value";
+        detailValue.textContent = value;
+
+        detailRow.appendChild(detailLabel);
+        detailRow.appendChild(detailValue);
+        detailsPanel.appendChild(detailRow);
+      });
+
+      wrapper.appendChild(detailsPanel);
     }
 
     if (this.cameraError) {
@@ -268,6 +333,7 @@ Module.register("MMM-MovementDetection", {
     const stats = this.compareFrames(this.previousFrame, currentFrame);
     this.previousFrame = currentFrame;
     this.currentMotionRatio = stats.changedRatio;
+    this.lastMotionStats = stats;
 
     if (this.config.debug) {
       Log.log(
@@ -477,6 +543,50 @@ Module.register("MMM-MovementDetection", {
     return this.cameraReady ? "camera active" : "camera pending";
   },
 
+  getHeadlineText: function () {
+    if (this.cameraError) {
+      return "Camera unavailable";
+    }
+
+    if (!this.monitoringStarted) {
+      return "Waiting for startup";
+    }
+
+    if (!this.cameraReady) {
+      return "Camera connecting";
+    }
+
+    if (this.isDimmed) {
+      return "Idle dimmed";
+    }
+
+    if (this.lastMovementAt && (Date.now() - this.lastMovementAt) <= (this.config.checkIntervalMs * 2)) {
+      return "Movement seen";
+    }
+
+    return "Monitoring live";
+  },
+
+  getDescriptionText: function () {
+    if (this.cameraError) {
+      return "Camera access needs attention before motion can be tracked.";
+    }
+
+    if (!this.monitoringStarted) {
+      return "The module is waiting for MagicMirror to finish creating DOM objects.";
+    }
+
+    if (!this.cameraReady) {
+      return "The browser is requesting camera access and preparing the motion sampler.";
+    }
+
+    if (this.isDimmed) {
+      return "No sustained movement was detected, so the configured dimming target is active.";
+    }
+
+    return "The camera feed is being sampled for motion and the screen stays awake while activity continues.";
+  },
+
   getIdleStateLabel: function () {
     if (!this.lastActivityAt) {
       return "warming up";
@@ -488,6 +598,22 @@ Module.register("MMM-MovementDetection", {
 
     const remainingMs = Math.max(0, this.config.inactivityTimeoutMs - (Date.now() - this.lastActivityAt));
     return `${this.formatDuration(remainingMs)} left`;
+  },
+
+  getSampleSummary: function () {
+    if (!this.lastMotionStats) {
+      return "0 / 0";
+    }
+
+    return `${this.lastMotionStats.changedCount} / ${this.lastMotionStats.sampledCount}`;
+  },
+
+  formatLastActivity: function () {
+    if (!this.lastActivityAt) {
+      return "warming up";
+    }
+
+    return new Date(this.lastActivityAt).toLocaleString();
   },
 
   formatLastMovement: function () {

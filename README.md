@@ -30,7 +30,8 @@ Then add the module to `config/config.js`:
   config: {
     inactivityTimeoutMs: 300000,
     checkIntervalMs: 1000,
-    dimBrightness: 0.2
+    dimBrightness: 0.2,
+    debug: false
   }
 }
 ```
@@ -56,7 +57,7 @@ Then add the module to `config/config.js`:
 | `showLastMovement` | `true` | Show the most recent detected movement timestamp in the module UI. |
 | `showIdleSummary` | `true` | Show the idle timeout and time remaining before dimming. |
 | `statusRefreshMs` | `10000` | UI refresh cadence for relative times. |
-| `debug` | `false` | Log motion ratios to the MagicMirror browser log. |
+| `debug` | `false` | Log motion ratios and show the extra diagnostic details panel in the module UI. |
 
 ## How It Works
 
